@@ -17,7 +17,9 @@ export class Project {
     }
 
     removeTodo (titleRemove) {
-        this._todos = this._todos.filter(todo => todo._title != titleRemove);
+        const initialLength = this._todos.length;
+        this._todos = this._todos.filter(todo => todo.getTitle() !== titleRemove);
+        return this._todos.length < initialLength;
     }
 
     getTodos () {
