@@ -12,6 +12,11 @@ import {
     defaultProjectName
 } from './modules/appLogic';
 
+import {
+    saveData,
+    getData
+} from './modules/storage'
+
 
 console.log('--- Kiểm tra Khởi tạo Dự án Mặc định ---');
 initializeDefaultProject();
@@ -38,20 +43,25 @@ console.log('Tất cả Projects sau khi thêm Project "Work":', projects);
 console.log('Todos trong "Work":', getProject('Work').getTodos());
 // Mong đợi: 2 projects ("Inbox", "Work"), mỗi project có Todos riêng
 
-console.log('\n--- Kiểm tra Chuyển đổi trạng thái Todo ---');
-console.log('Trạng thái "Learn JavaScript" trước khi đổi:', getProject(defaultProjectName).getTodos().find(todo => todo.getTitle() === 'Learn JavaScript').getIsComplete());
+// console.log('\n--- Kiểm tra Chuyển đổi trạng thái Todo ---');
+// console.log('Trạng thái "Learn JavaScript" trước khi đổi:', getProject(defaultProjectName).getTodos().find(todo => todo.getTitle() === 'Learn JavaScript').getIsComplete());
 toggleTodoCompletion(defaultProjectName, 'Learn JavaScript');
-console.log('Trạng thái "Learn JavaScript" sau khi đổi:', getProject(defaultProjectName).getTodos().find(todo => todo.getTitle() === 'Learn JavaScript').getIsComplete());
+// console.log('Trạng thái "Learn JavaScript" sau khi đổi:', getProject(defaultProjectName).getTodos().find(todo => todo.getTitle() === 'Learn JavaScript').getIsComplete());
 // Mong đợi: Trạng thái chuyển từ false sang true
 
-console.log('\n--- Kiểm tra Xóa Todo ---');
-console.log('Todos trong "Inbox" trước khi xóa:', getProject(defaultProjectName).getTodos().map(todo => todo.getTitle()));
-removeTodoFromProject(defaultProjectName, 'Build Todo App');
-console.log('Todos trong "Inbox" sau khi xóa:', getProject(defaultProjectName).getTodos().map(todo => todo.getTitle()));
+// console.log('\n--- Kiểm tra Xóa Todo ---');
+// console.log('Todos trong "Inbox" trước khi xóa:', getProject(defaultProjectName).getTodos().map(todo => todo.getTitle()));
+// removeTodoFromProject(defaultProjectName, 'Build Todo App');
+// console.log('Todos trong "Inbox" sau khi xóa:', getProject(defaultProjectName).getTodos().map(todo => todo.getTitle()));
 // Mong đợi: "Build Todo App" đã bị xóa khỏi "Inbox"
 
-console.log('\n--- Kiểm tra Xóa Project ---');
-console.log('Tất cả Projects trước khi xóa "Work":', getAllProjects().map(p => p.getName()));
-removeProject('Work');
-console.log('Tất cả Projects sau khi xóa "Work":', getAllProjects().map(p => p.getName()));
+// console.log('\n--- Kiểm tra Xóa Project ---');
+// console.log('Tất cả Projects trước khi xóa "Work":', getAllProjects().map(p => p.getName()));
+// removeProject('Work');
+// console.log('Tất cả Projects sau khi xóa "Work":', getAllProjects().map(p => p.getName()));
 // Mong đợi: Project "Work" đã bị xóa
+
+saveData()
+
+console.log(getData()[0].getName())
+console.log(getData()[1].getName())
