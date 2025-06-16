@@ -5,6 +5,7 @@ export class Todo {
         this._dueDate = dueDate;
         this._priority = priority;
         this._isComplete = false;
+        this._id = crypto.randomUUID();
     }
 
 
@@ -21,8 +22,11 @@ export class Todo {
     getPriority () {
         return this._priority;
     }
-    getIsComplete () {
+    getIsCompleted () {
         return this._isComplete;
+    }
+    getId () {
+        return this._id;
     }
 
     // setters
