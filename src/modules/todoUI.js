@@ -1,6 +1,6 @@
 import { saveData, getData } from "./storage";
 import { Todo } from "./todo";
-import { getCurrentProject, addTodoToProject } from "./appLogic";
+import { getCurrentProject, addTodoToProject, removeTodoFromProject } from "./appLogic";
 // import { renderTodos } from "./todoUI";
 
 const handleFormTodo = (e) => {
@@ -60,6 +60,9 @@ const formAddTodo = () => {
     formTodo.setAttribute("class", "form-add-todo");
     formTodo.setAttribute("action", "submit");
 
+    const titleForm = document.createElement("h2");
+    titleForm.textContent = "Form Add Todo";
+    titleForm.classList.add("title-form");
     const labelTitle = document.createElement("label");
     const labelDescription = document.createElement("label");
     const labelDueDate = document.createElement("label");
@@ -79,6 +82,7 @@ const formAddTodo = () => {
     spanErrorDueDate.classList.add("error-msg", "error-msg-dueDate");
     const spanErrorDescription = document.createElement("span");
     spanErrorDescription.classList.add("error-msg", "error-msg-description");
+
 
     inputTitle.setAttribute("id", "todo-title");
     inputTitle.setAttribute("type", "text");
@@ -109,7 +113,7 @@ const formAddTodo = () => {
     // inputDueDate.setAttribute("required", "");
 
     selectPriority.append(optionHigh, optionMedium, optionLow);
-    formTodo.append(labelTitle, inputTitle, spanErrorTitle, labelDescription, inputDescription, spanErrorDescription, labelDueDate, inputDueDate, spanErrorDueDate, labelPriority, selectPriority, btnFormTodo);
+    formTodo.append(titleForm, labelTitle, inputTitle, spanErrorTitle, labelDescription, inputDescription, spanErrorDescription, labelDueDate, inputDueDate, spanErrorDueDate, labelPriority, selectPriority, btnFormTodo);
     
     formTodo.addEventListener("submit", handleFormTodo);
     return formTodo;
@@ -139,7 +143,11 @@ const createTodoElement = (todo) => {
     const priorityTodo = document.createElement('p');
     const checkTodo = document.createElement('input');
     const labelTodo = document.createElement('label');
-    
+    const btnContainer = document.createElement('div');
+    const deleteBtn = document.createElement('button');
+    const editBtn = document.createElement('button');
+    btnContainer.append(editBtn, deleteBtn);
+
     divTodo.setAttribute('data-todo-id', `todo-${todo.getId()}`);
     divTodo.setAttribute('class', 'todo-item');
     titleTodo.textContent = `${todo.getTitle()}`;
@@ -153,8 +161,22 @@ const createTodoElement = (todo) => {
         checkTodo.checked = todo.getIsCompleted();
         saveData();
     });
-    
-    divTodo.append(titleTodo, dueDateTodo, priorityTodo, labelTodo, checkTodo);
+    btnContainer.classList.add("btn-container-todo")
+    deleteBtn.classList.add("btn-delete-todo");
+    deleteBtn.addEventListener("click", function (e) {
+        //  = (projectName, todoTitle)
+        // console.log(e.target.parentElement.parentElement);
+        const projectName = getCurrentProject().getName();
+        const todoTitle = todo.getTitle();
+        removeTodoFromProject(projectName, todoTitle);
+        // renderTodos()
+        renderTodos(getCurrentProject());
+
+    })
+    editBtn.classList.add("btn-edit-todo");
+    deleteBtn.textContent = "Delete";
+    editBtn.textContent = "Edit";
+    divTodo.append(titleTodo, dueDateTodo, priorityTodo, labelTodo, checkTodo, btnContainer);
     return divTodo;
 }
 
