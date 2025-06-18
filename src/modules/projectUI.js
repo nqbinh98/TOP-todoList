@@ -7,6 +7,8 @@ import {
     defaultProjectName,
     getAllProjects,
     getProject,
+    setCurrentProject,
+    getCurrentProject
 } from "./appLogic";
 import { renderTodos } from "./todoUI";
 
@@ -26,8 +28,9 @@ const renderProjects = (projects) => {
             elementProjects.forEach(project => {
                 project.classList.remove("active")
             })
-            divProject.classList.add("active")
-            renderTodos(getProject(e.target.textContent));
+            divProject.classList.add("active");
+            setCurrentProject(e.target.textContent);
+            renderTodos(getCurrentProject());
         })
         projectsSidebar.append(divProject);
     })

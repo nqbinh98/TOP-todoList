@@ -10,6 +10,14 @@ import {
 const defaultProjectName = "Inbox";
 let allProjects = getData();
 
+const setCurrentProject = (project) => {
+    currentProject = getProject(project)
+}
+
+const getCurrentProject = () => {
+    return currentProject;
+}
+
 const initializeDefaultProject = () => {
     if (allProjects.length === 0) {
         const defaultProject = new Project(defaultProjectName);
@@ -20,7 +28,6 @@ const initializeDefaultProject = () => {
 };
  
 initializeDefaultProject();
-
 
 // --- Manage Project ---
 
@@ -52,6 +59,9 @@ const removeProject = (projectName) => {
 const getProject = (projectName) => {
     return allProjects.find(project => project.getName() === projectName);
 };
+
+let currentProject = getProject(defaultProjectName);
+
 
 const getAllProjects = () => {
     return [...allProjects];
@@ -120,5 +130,7 @@ export {
     addTodoToProject,
     removeTodoFromProject,
     toggleTodoCompletion,
-    defaultProjectName
+    defaultProjectName,
+    setCurrentProject,
+    getCurrentProject
 }
