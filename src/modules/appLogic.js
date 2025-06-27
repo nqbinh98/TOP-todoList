@@ -82,13 +82,13 @@ const addTodoToProject = (projectName, title, description, dueDate, priority) =>
     return newTodo;
 };
 
-const removeTodoFromProject = (projectName, todoTitle) => {
+const removeTodoFromProject = (projectName, todoId, todoTitle) => {
     const targetProject = getProject(projectName);
     if (!targetProject) {
         console.warn(`Project ${projectName} not found. Cannot remove todo`);
         return false;
     }
-    const checkRemoved = targetProject.removeTodo(todoTitle);
+    const checkRemoved = targetProject.removeTodo(todoId);
     if (checkRemoved) {
         console.log(`Todo ${todoTitle} removed successfully from project ${targetProject.getName()}.`);
         saveData();

@@ -2,10 +2,12 @@ import { saveData, getData } from "./storage";
 import { Todo } from "./todo";
 import { getCurrentProject, addTodoToProject, removeTodoFromProject } from "./appLogic";
 // import { renderTodos } from "./todoUI";
+const modalFormTodo = document.querySelector("#modal-form");
+let todoCurrentEdit = null;
+let isEditingTodo = false;
 
 const handleFormTodo = (e) => {
     e.preventDefault();
-    const modalFormTodo = document.querySelector("#modal-form");
     const title = e.target.querySelector("#todo-title");
     const description = e.target.querySelector("#todo-description");
     const dueDate = e.target.querySelector("#todo-dueDate");
@@ -32,14 +34,28 @@ const handleFormTodo = (e) => {
 
     console.log(title.value, description.value, dueDate.value);
 
-    const addTodo = addTodoToProject(getCurrentProject().getName(), title.value, description.value, dueDate.value, priority.value)
-    if(addTodo) {
+    if (isEditingTodo) {
+        todoCurrentEdit.setTitle(title.value);
+        todoCurrentEdit.setDescription(description.value);
+        todoCurrentEdit.setDueDate(dueDate.value);
+        todoCurrentEdit.setPriority(priority.value);
         saveData();
-        modalFormTodo.classList.toggle("hide");
+        modalFormTodo.classList.add("hide");
         renderTodos(getCurrentProject())
+        isEditingTodo = false;
+        todoCurrentEdit = null;
         return true;
     } else {
-        return false
+
+        const addTodo = addTodoToProject(getCurrentProject().getName(), title.value, description.value, dueDate.value, priority.value)
+        if(addTodo) {
+            saveData();
+            modalFormTodo.classList.add("hide");
+            renderTodos(getCurrentProject())
+            return true;
+        } else {
+            return false
+        }
     }
 }
 
@@ -53,6 +69,8 @@ const resetFormAddTodo = (modalFormTodo) => {
     const selectTodo = formTodo.querySelector("select");
     inputsTodo.forEach(input => input.value = "");
     selectTodo.value = "high";
+    isEditingTodo = false;
+    todoCurrentEdit = null;
 }
 
 const formAddTodo = () => {
@@ -61,7 +79,6 @@ const formAddTodo = () => {
     formTodo.setAttribute("action", "submit");
 
     const titleForm = document.createElement("h2");
-    titleForm.textContent = "Form Add Todo";
     titleForm.classList.add("title-form");
     const labelTitle = document.createElement("label");
     const labelDescription = document.createElement("label");
@@ -105,13 +122,15 @@ const formAddTodo = () => {
     optionHigh.setAttribute("value", "high");
     optionMedium.setAttribute("value", "medium");
     optionLow.setAttribute("value", "low");
-    btnFormTodo.classList.add("btn-add-todo");
     btnFormTodo.classList.add("btn-form");
-    btnFormTodo.textContent = "Add"
+    btnFormTodo.classList.add("btn-add-todo");
+
     // inputDescription.setAttribute("required", "");
     // inputTitle.setAttribute("required", "");
     // inputDueDate.setAttribute("required", "");
 
+    titleForm.textContent = "Form Add Todo";
+    btnFormTodo.textContent = "Add"
     selectPriority.append(optionHigh, optionMedium, optionLow);
     formTodo.append(titleForm, labelTitle, inputTitle, spanErrorTitle, labelDescription, inputDescription, spanErrorDescription, labelDueDate, inputDueDate, spanErrorDueDate, labelPriority, selectPriority, btnFormTodo);
     
@@ -119,14 +138,9 @@ const formAddTodo = () => {
     return formTodo;
 }
 
-
-
 const renderTodos = (project) => {
 
     const todosDisplay = document.querySelector("#todos-display");
-    const modalFormTodo = document.querySelector("#modal-form");
-    // console.log(modalFormTodo);
-
     const projectTodos = project.getTodos();
     todosDisplay.textContent = ``;
 
@@ -139,6 +153,7 @@ const renderTodos = (project) => {
 const createTodoElement = (todo) => {
     const divTodo = document.createElement('div');
     const titleTodo = document.createElement('h3');
+    const descriptionTodo = document.createElement('p');
     const dueDateTodo = document.createElement('p');
     const priorityTodo = document.createElement('p');
     const checkTodo = document.createElement('input');
@@ -151,6 +166,7 @@ const createTodoElement = (todo) => {
     divTodo.setAttribute('data-todo-id', `todo-${todo.getId()}`);
     divTodo.setAttribute('class', 'todo-item');
     titleTodo.textContent = `${todo.getTitle()}`;
+    descriptionTodo.textContent = `Description: ${todo.getDescription()}`;
     dueDateTodo.textContent = `Due date: ${todo.getDueDate()}`;
     priorityTodo.textContent = `Priority: ${todo.getPriority()}`;
     labelTodo.textContent = "Complete: "
@@ -162,22 +178,50 @@ const createTodoElement = (todo) => {
         saveData();
     });
     btnContainer.classList.add("btn-container-todo")
+   
+    // Delete todo button
     deleteBtn.classList.add("btn-delete-todo");
+    deleteBtn.textContent = "Delete";
     deleteBtn.addEventListener("click", function (e) {
-        //  = (projectName, todoTitle)
-        // console.log(e.target.parentElement.parentElement);
         const projectName = getCurrentProject().getName();
         const todoTitle = todo.getTitle();
-        removeTodoFromProject(projectName, todoTitle);
-        // renderTodos()
+        const todoId = todo.getId();
+        removeTodoFromProject(projectName, todoId, todoTitle);
         renderTodos(getCurrentProject());
 
-    })
+    });
+
+    // Edit todo button
     editBtn.classList.add("btn-edit-todo");
-    deleteBtn.textContent = "Delete";
     editBtn.textContent = "Edit";
-    divTodo.append(titleTodo, dueDateTodo, priorityTodo, labelTodo, checkTodo, btnContainer);
+    editBtn.addEventListener("click", function () {
+        todoCurrentEdit = todo;
+        isEditingTodo = true;
+        fillTodoForm(todoCurrentEdit);
+        modalFormTodo.classList.remove("hide");
+    });
+    
+    divTodo.append(titleTodo, descriptionTodo, dueDateTodo, priorityTodo, labelTodo, checkTodo, btnContainer);
     return divTodo;
+}
+
+const fillTodoForm = (todo) => {
+
+    const inputTitle = document.querySelector("#todo-title");
+    const inputDescription = document.querySelector("#todo-description");
+    const inputDueDate = document.querySelector("#todo-dueDate");
+    const selectPriority = document.querySelector("#todo-priority");
+    const titleForm = document.querySelector(".title-form");
+    const btnFormTodo = document.querySelector(".btn-add-todo");
+    titleForm.textContent = "Form Edit Todo";
+    btnFormTodo.textContent = "Submit"
+
+    if (todo) {
+        inputTitle.value = todo.getTitle();
+        inputDescription.value = todo.getDescription();
+        inputDueDate.value = todo.getDueDate();
+        selectPriority.value = todo.getPriority();
+    }
 }
 
 export {renderTodos, createTodoElement, formAddTodo, resetFormAddTodo};

@@ -16,9 +16,10 @@ export class Project {
         this._todos.push(todoObject);
     }
 
-    removeTodo (titleRemove) {
+    removeTodo (idTodoRemove) {
         const initialLength = this._todos.length;
-        this._todos = this._todos.filter(todo => todo.getTitle() !== titleRemove);
+        // this._todos = this._todos.filter(todo => todo.getTitle() !== titleRemove);
+        this._todos = this._todos.filter(todo => todo.getId() !== idTodoRemove);
         return this._todos.length < initialLength;
     }
 
