@@ -6,29 +6,33 @@ import {
     getCurrentProject
 } from "./appLogic";
 
-import { renderTodos, formAddTodo, resetFormAddTodo } from "./todoUI";
-import { renderProjects } from "./projectUI";
+import { renderTodos, formAddTodo, resetFormTodo } from "./todoUI";
+import { renderProjects, formProject } from "./projectUI";
 
 
 export const initializeUI = () => {
     const allProjects = getAllProjects();
-    const modalFormTodo = document.querySelector("#modal-form");
-    const todosContent = document.querySelector("#todos-content");
-    // const defaultProject = getProject(defaultProjectName);
-    modalFormTodo.append(formAddTodo());
-    resetFormAddTodo(modalFormTodo);
+    const modalForm = document.querySelector("#modal-form");
+    modalForm.append(formAddTodo());
+    modalForm.append(formProject());
 
     renderProjects(allProjects);
     setCurrentProject(defaultProjectName);
     renderTodos(getCurrentProject());
-    const btnAddTodo = document.createElement('button');
-    btnAddTodo.textContent = "Add";
-    btnAddTodo.classList.add('btnTodo-add');
+    const btnAddTodo = document.querySelector('#btn-add-todo');
     btnAddTodo.addEventListener('click', function (e) {
-        modalFormTodo.classList.toggle("hide");
-        resetFormAddTodo(modalFormTodo);
+        const formTodo = document.querySelector("#form-modal-todo");
+        formTodo.classList.toggle("hide");
+        modalForm.classList.toggle("hide");
+        resetFormTodo(modalForm);
     });
-    todosContent.append(btnAddTodo);
+    
+    const btnAddProject = document.querySelector('#btn-add-project');
+    btnAddProject.addEventListener("click", function () {
+        const formProject = document.querySelector("#form-modal-project");
+        formProject.classList.toggle("hide");
+        modalForm.classList.toggle("hide");
 
+    })
 }
 

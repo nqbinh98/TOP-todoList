@@ -43,14 +43,16 @@ const addProject = (projectName) => {
     return newProject;
 };
 
-const removeProject = (projectName) => {
-    const projectExists = allProjects.some(project => project.getName() === projectName)
+const removeProject = (projectId, projectName) => {
+    const projectExists = allProjects.some(project => project.getId() === projectId);
     if (!projectExists) {
         console.warn(`Project ${projectName} not found to remove`);
         return false;
     }
-    allProjects = allProjects.filter(project => project.getName() !== projectName);
+    console.log(`All projects before remove: ${allProjects}`)
+    allProjects = allProjects.filter(project => project.getId() !== projectId);
     console.log(`Project ${projectName} has been remove`)
+    console.log(`All projects after remove: ${allProjects}`)
     saveData();
     return true;
 

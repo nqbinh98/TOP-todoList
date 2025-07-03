@@ -27,7 +27,7 @@ const getData = () => {
         const projectInstance = new Project (project._name);
         
         project._todos.map(todo => {
-            const todoInstance = new Todo  (todo._title, todo._description, todo._dueDate, todo._priority)
+            const todoInstance = new Todo (todo._title, todo._description, todo._dueDate, todo._priority)
             todoInstance.setIsComplete(todo._isComplete);
             projectInstance.addTodo(todoInstance);  
         })

@@ -2,12 +2,13 @@ import { saveData, getData } from "./storage";
 import { Todo } from "./todo";
 import { getCurrentProject, addTodoToProject, removeTodoFromProject } from "./appLogic";
 // import { renderTodos } from "./todoUI";
-const modalFormTodo = document.querySelector("#modal-form");
+const modalForm = document.querySelector("#modal-form");
 let todoCurrentEdit = null;
 let isEditingTodo = false;
 
 const handleFormTodo = (e) => {
     e.preventDefault();
+    const formTodo = document.querySelector("#form-modal-todo");
     const title = e.target.querySelector("#todo-title");
     const description = e.target.querySelector("#todo-description");
     const dueDate = e.target.querySelector("#todo-dueDate");
@@ -17,6 +18,7 @@ const handleFormTodo = (e) => {
     const descriptionMsg = e.target.querySelector(".error-msg-description");
     const spanError = e.target.querySelectorAll(".error-msg");
     spanError.forEach(span => span.textContent = "")
+   
     // Validation form todo
     if (!title.value) {
         titleMsg.textContent = "Title is required!";
@@ -27,7 +29,6 @@ const handleFormTodo = (e) => {
     if (!dueDate.value) {
         dueDateMsg.textContent = "DueDate is required!";
     } 
-
     if (!title.value || !description.value || !dueDate.value) {
         return false;
     }
@@ -39,32 +40,28 @@ const handleFormTodo = (e) => {
         todoCurrentEdit.setDescription(description.value);
         todoCurrentEdit.setDueDate(dueDate.value);
         todoCurrentEdit.setPriority(priority.value);
-        saveData();
-        modalFormTodo.classList.add("hide");
-        renderTodos(getCurrentProject())
         isEditingTodo = false;
         todoCurrentEdit = null;
-        return true;
     } else {
 
         const addTodo = addTodoToProject(getCurrentProject().getName(), title.value, description.value, dueDate.value, priority.value)
-        if(addTodo) {
-            saveData();
-            modalFormTodo.classList.add("hide");
-            renderTodos(getCurrentProject())
-            return true;
-        } else {
-            return false
+        if (!addTodo) {
+            return false;
         }
     }
+    saveData();
+    formTodo.classList.add("hide");
+    modalForm.classList.add("hide");
+    renderTodos(getCurrentProject())
+    return true;
+
 }
 
-const resetFormAddTodo = (modalFormTodo) => {
+const resetFormTodo = (modalForm) => {
     const spanError = document.querySelectorAll(".error-msg");
     spanError.forEach(span => span.textContent = "");
 
-    // modalFormTodo.classList.toggle("hide");
-    const formTodo = modalFormTodo.querySelector(".form-add-todo");
+    const formTodo = modalForm.querySelector(".form-modal");
     const inputsTodo = formTodo.querySelectorAll("input");
     const selectTodo = formTodo.querySelector("select");
     inputsTodo.forEach(input => input.value = "");
@@ -75,8 +72,10 @@ const resetFormAddTodo = (modalFormTodo) => {
 
 const formAddTodo = () => {
     const formTodo = document.createElement("form");
-    formTodo.setAttribute("class", "form-add-todo");
+    formTodo.setAttribute("class", "form-modal");
+    formTodo.setAttribute("id", "form-modal-todo");
     formTodo.setAttribute("action", "submit");
+    formTodo.classList.add("hide");
 
     const titleForm = document.createElement("h2");
     titleForm.classList.add("title-form");
@@ -100,14 +99,6 @@ const formAddTodo = () => {
     const spanErrorDescription = document.createElement("span");
     spanErrorDescription.classList.add("error-msg", "error-msg-description");
 
-
-    inputTitle.setAttribute("id", "todo-title");
-    inputTitle.setAttribute("type", "text");
-    inputDescription.setAttribute("id", "todo-description");
-    inputDescription.setAttribute("type", "text");
-    inputDueDate.setAttribute("id", "todo-dueDate");
-    inputDueDate.setAttribute("type", "date");
-    selectPriority.setAttribute("id", "todo-priority");
     labelTitle.setAttribute("for", "todo-title");
     labelTitle.textContent = "Title";
     labelDescription.setAttribute("for", "todo-description");
@@ -116,6 +107,13 @@ const formAddTodo = () => {
     labelDueDate.textContent = "DueDate";
     labelPriority.setAttribute("for", "todo-priority");
     labelPriority.textContent = "Priority";
+    inputTitle.setAttribute("id", "todo-title");
+    inputTitle.setAttribute("type", "text");
+    inputDescription.setAttribute("id", "todo-description");
+    inputDescription.setAttribute("type", "text");
+    inputDueDate.setAttribute("id", "todo-dueDate");
+    inputDueDate.setAttribute("type", "date");
+    selectPriority.setAttribute("id", "todo-priority");
     optionHigh.textContent = "High";
     optionMedium.textContent = "Medium";
     optionLow.textContent = "Low";
@@ -141,16 +139,18 @@ const formAddTodo = () => {
 const renderTodos = (project) => {
 
     const todosDisplay = document.querySelector("#todos-display");
-    const projectTodos = project.getTodos();
     todosDisplay.textContent = ``;
-
-    projectTodos.forEach(todo => {
-        const divTodo = createTodoElement(todo);
-        todosDisplay.append(divTodo);
-    })
+    if (project) {
+        const projectTodos = project.getTodos();
+        projectTodos.forEach(todo => {
+            const divTodo = createTodoElement(todo);
+            todosDisplay.append(divTodo);
+        })
+    }
 }
 
 const createTodoElement = (todo) => {
+    const formTodo = document.querySelector("#form-modal-todo");
     const divTodo = document.createElement('div');
     const titleTodo = document.createElement('h3');
     const descriptionTodo = document.createElement('p');
@@ -198,7 +198,8 @@ const createTodoElement = (todo) => {
         todoCurrentEdit = todo;
         isEditingTodo = true;
         fillTodoForm(todoCurrentEdit);
-        modalFormTodo.classList.remove("hide");
+        formTodo.classList.remove("hide");
+        modalForm.classList.remove("hide");
     });
     
     divTodo.append(titleTodo, descriptionTodo, dueDateTodo, priorityTodo, labelTodo, checkTodo, btnContainer);
@@ -213,6 +214,7 @@ const fillTodoForm = (todo) => {
     const selectPriority = document.querySelector("#todo-priority");
     const titleForm = document.querySelector(".title-form");
     const btnFormTodo = document.querySelector(".btn-add-todo");
+
     titleForm.textContent = "Form Edit Todo";
     btnFormTodo.textContent = "Submit"
 
@@ -224,4 +226,4 @@ const fillTodoForm = (todo) => {
     }
 }
 
-export {renderTodos, createTodoElement, formAddTodo, resetFormAddTodo};
+export {renderTodos, createTodoElement, formAddTodo, resetFormTodo};
