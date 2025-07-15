@@ -1,3 +1,5 @@
+// domManager
+
 import {
     defaultProjectName,
     getAllProjects,
@@ -6,14 +8,14 @@ import {
     getCurrentProject
 } from "./appLogic";
 
-import { renderTodos, formAddTodo, resetFormTodo } from "./todoUI";
-import { renderProjects, formProject } from "./projectUI";
+import { renderTodos, formTodo, closeFormTodo, getIsFormTodoOpening, setIsFormTodoOpening, handleFormTodo } from "./todoUI";
+import { renderProjects, formProject, closeFormProject, getIsFormProjectOpening, setIsFormProjectOpening, handleFormProject} from "./projectUI";
 
 
 export const initializeUI = () => {
     const allProjects = getAllProjects();
     const modalForm = document.querySelector("#modal-form");
-    modalForm.append(formAddTodo());
+    modalForm.append(formTodo());
     modalForm.append(formProject());
 
     renderProjects(allProjects);
@@ -21,18 +23,36 @@ export const initializeUI = () => {
     renderTodos(getCurrentProject());
     const btnAddTodo = document.querySelector('#btn-add-todo');
     btnAddTodo.addEventListener('click', function (e) {
+        setIsFormTodoOpening(true);
         const formTodo = document.querySelector("#form-modal-todo");
-        formTodo.classList.toggle("hide");
-        modalForm.classList.toggle("hide");
-        resetFormTodo(modalForm);
+        formTodo.classList.remove("hide");
+        modalForm.classList.remove("hide");
     });
     
     const btnAddProject = document.querySelector('#btn-add-project');
     btnAddProject.addEventListener("click", function () {
+        setIsFormProjectOpening(true);
         const formProject = document.querySelector("#form-modal-project");
-        formProject.classList.toggle("hide");
-        modalForm.classList.toggle("hide");
+        formProject.classList.remove("hide");
+        modalForm.classList.remove("hide");
 
-    })
+    });
+
+    document.addEventListener("keydown", function (e) {
+        if (e.key === 'Escape') {
+            if (getIsFormProjectOpening()) {
+                closeFormProject();
+                setIsFormProjectOpening(false);
+                return;
+            }
+
+            if (getIsFormTodoOpening()) {
+                closeFormTodo();
+                setIsFormTodoOpening(false);
+                return;
+            }
+        } 
+    });
+
 }
 

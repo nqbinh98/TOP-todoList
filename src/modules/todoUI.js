@@ -1,84 +1,50 @@
+// todoUI
 import { saveData, getData } from "./storage";
-import { Todo } from "./todo";
 import { getCurrentProject, addTodoToProject, removeTodoFromProject } from "./appLogic";
-// import { renderTodos } from "./todoUI";
+import { format, isPast, isToday, isTomorrow, differenceInDays, parseISO } from "date-fns";
 const modalForm = document.querySelector("#modal-form");
 let todoCurrentEdit = null;
 let isEditingTodo = false;
+let isFormTodoOpening = false;
 
-const handleFormTodo = (e) => {
-    e.preventDefault();
-    const formTodo = document.querySelector("#form-modal-todo");
-    const title = e.target.querySelector("#todo-title");
-    const description = e.target.querySelector("#todo-description");
-    const dueDate = e.target.querySelector("#todo-dueDate");
-    const priority = e.target.querySelector("#todo-priority");
-    const titleMsg = e.target.querySelector(".error-msg-title");
-    const dueDateMsg = e.target.querySelector(".error-msg-dueDate");
-    const descriptionMsg = e.target.querySelector(".error-msg-description");
-    const spanError = e.target.querySelectorAll(".error-msg");
-    spanError.forEach(span => span.textContent = "")
-   
-    // Validation form todo
-    if (!title.value) {
-        titleMsg.textContent = "Title is required!";
-    }
-    if (!description.value) {
-        descriptionMsg.textContent = "Description is required!";
-    }
-    if (!dueDate.value) {
-        dueDateMsg.textContent = "DueDate is required!";
-    } 
-    if (!title.value || !description.value || !dueDate.value) {
-        return false;
-    }
+let formElementGlobal; 
+let titleFormGlobal;
+let inputTitleGlobal;
+let inputDescriptionGlobal;
+let inputDueDateGlobal;
+let selectPriorityGlobal;
+let btnFormGlobal;
+let spanErrorTitleGlobal;
+let spanErrorDueDateGlobal;
+let spanErrorDescriptionGlobal;
+let spanErrorGlobal;
+let inputsTodoGlobal;
 
-    console.log(title.value, description.value, dueDate.value);
+const getIsFormTodoOpening = () => {
+    return isFormTodoOpening;
+};
+const setIsFormTodoOpening = (value) => {
+    isFormTodoOpening = value;
+};
 
-    if (isEditingTodo) {
-        todoCurrentEdit.setTitle(title.value);
-        todoCurrentEdit.setDescription(description.value);
-        todoCurrentEdit.setDueDate(dueDate.value);
-        todoCurrentEdit.setPriority(priority.value);
-        isEditingTodo = false;
-        todoCurrentEdit = null;
-    } else {
+const formTodo = () => {
+    const formElement = document.createElement("form");
+    formElement.setAttribute("class", "form-modal");
+    formElement.setAttribute("id", "form-modal-todo");
+    formElement.setAttribute("action", "submit");
+    formElement.classList.add("hide");
+    formElementGlobal = formElement;
 
-        const addTodo = addTodoToProject(getCurrentProject().getName(), title.value, description.value, dueDate.value, priority.value)
-        if (!addTodo) {
-            return false;
-        }
-    }
-    saveData();
-    formTodo.classList.add("hide");
-    modalForm.classList.add("hide");
-    renderTodos(getCurrentProject())
-    return true;
-
-}
-
-const resetFormTodo = (modalForm) => {
-    const spanError = document.querySelectorAll(".error-msg");
-    spanError.forEach(span => span.textContent = "");
-
-    const formTodo = modalForm.querySelector(".form-modal");
-    const inputsTodo = formTodo.querySelectorAll("input");
-    const selectTodo = formTodo.querySelector("select");
-    inputsTodo.forEach(input => input.value = "");
-    selectTodo.value = "high";
-    isEditingTodo = false;
-    todoCurrentEdit = null;
-}
-
-const formAddTodo = () => {
-    const formTodo = document.createElement("form");
-    formTodo.setAttribute("class", "form-modal");
-    formTodo.setAttribute("id", "form-modal-todo");
-    formTodo.setAttribute("action", "submit");
-    formTodo.classList.add("hide");
+    const closeBtn = document.createElement("button");
+    closeBtn.textContent = "X";
+    closeBtn.classList.add("close-btn");
+    closeBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        closeFormTodo();
+    })
 
     const titleForm = document.createElement("h2");
-    titleForm.classList.add("title-form");
+    titleForm.classList.add("title-form", "title-form-todo");
     const labelTitle = document.createElement("label");
     const labelDescription = document.createElement("label");
     const labelDueDate = document.createElement("label");
@@ -93,11 +59,11 @@ const formAddTodo = () => {
     const btnFormTodo = document.createElement("button");
 
     const spanErrorTitle = document.createElement("span");
-    spanErrorTitle.classList.add("error-msg", "error-msg-title");
+    spanErrorTitle.classList.add("error-msg", "error-msg-title-todo");
     const spanErrorDueDate = document.createElement("span");
-    spanErrorDueDate.classList.add("error-msg", "error-msg-dueDate");
+    spanErrorDueDate.classList.add("error-msg", "error-msg-dueDate-todo");
     const spanErrorDescription = document.createElement("span");
-    spanErrorDescription.classList.add("error-msg", "error-msg-description");
+    spanErrorDescription.classList.add("error-msg", "error-msg-description-todo");
 
     labelTitle.setAttribute("for", "todo-title");
     labelTitle.textContent = "Title";
@@ -120,37 +86,108 @@ const formAddTodo = () => {
     optionHigh.setAttribute("value", "high");
     optionMedium.setAttribute("value", "medium");
     optionLow.setAttribute("value", "low");
-    btnFormTodo.classList.add("btn-form");
-    btnFormTodo.classList.add("btn-add-todo");
+    btnFormTodo.classList.add("btn-form", "btn-form-todo");
 
-    // inputDescription.setAttribute("required", "");
-    // inputTitle.setAttribute("required", "");
-    // inputDueDate.setAttribute("required", "");
+    inputDescription.setAttribute("required", "");
+    inputTitle.setAttribute("required", "");
+    inputDueDate.setAttribute("required", "");
 
     titleForm.textContent = "Form Add Todo";
     btnFormTodo.textContent = "Add"
     selectPriority.append(optionHigh, optionMedium, optionLow);
-    formTodo.append(titleForm, labelTitle, inputTitle, spanErrorTitle, labelDescription, inputDescription, spanErrorDescription, labelDueDate, inputDueDate, spanErrorDueDate, labelPriority, selectPriority, btnFormTodo);
+    formElement.append(titleForm, closeBtn, labelTitle, inputTitle, spanErrorTitle, labelDescription, inputDescription, spanErrorDescription, labelDueDate, inputDueDate, spanErrorDueDate, labelPriority, selectPriority, btnFormTodo);
+    formElement.addEventListener("submit", handleFormTodo);
     
-    formTodo.addEventListener("submit", handleFormTodo);
-    return formTodo;
+    titleFormGlobal = titleForm;
+    inputTitleGlobal = inputTitle;
+    inputDescriptionGlobal = inputDescription;
+    inputDueDateGlobal = inputDueDate;
+    selectPriorityGlobal = selectPriority;
+    btnFormGlobal = btnFormTodo;
+    spanErrorTitleGlobal = spanErrorTitle;
+    spanErrorDueDateGlobal = spanErrorDueDate;
+    spanErrorDescriptionGlobal = spanErrorDescription;
+    spanErrorGlobal = formElement.querySelectorAll(".error-msg");
+    inputsTodoGlobal = formElement.querySelectorAll("input");
+    return formElement;
 }
+
+const handleFormTodo = (e) => {
+    e.preventDefault();
+    spanErrorGlobal.forEach(span => span.textContent = "")
+   
+    // Validation form todo
+    if (!inputTitleGlobal.value) {
+        spanErrorTitleGlobal.textContent = "Title is required!";
+    }
+    if (!inputDescriptionGlobal.value) {
+        spanErrorDescriptionGlobal.textContent = "Description is required!";
+    }
+    if (!inputDueDateGlobal.value) {
+        spanErrorDueDateGlobal.textContent = "DueDate is required!";
+    } 
+    if (!inputTitleGlobal.value || !inputDescriptionGlobal.value || !inputDueDateGlobal.value) {
+        return false;
+    }
+
+    if (isEditingTodo) {
+        todoCurrentEdit.setTitle(inputTitleGlobal.value);
+        todoCurrentEdit.setDescription(inputDescriptionGlobal.value);
+        todoCurrentEdit.setDueDate(inputDueDateGlobal.value);
+        todoCurrentEdit.setPriority(selectPriorityGlobal.value);
+        isEditingTodo = false;
+        todoCurrentEdit = null;
+        saveData();
+
+    } else {
+
+        const addTodo = addTodoToProject(getCurrentProject().getName(), inputTitleGlobal.value, inputDescriptionGlobal.value, inputDueDateGlobal.value, selectPriorityGlobal.value)
+        if (!addTodo) {
+            return false;
+        }
+    }
+    closeFormTodo();
+    renderTodos(getCurrentProject())
+    return true;
+
+}
+
+const closeFormTodo = () => {    
+    spanErrorGlobal.forEach(span => span.textContent = "");
+    titleFormGlobal.textContent = "Form Add Todo";
+    btnFormGlobal.textContent = "Add";
+    inputsTodoGlobal.forEach(input => input.value = "");
+
+    formElementGlobal.classList.add("hide");
+    modalForm.classList.add("hide");
+    selectPriorityGlobal.value = "high";
+    isEditingTodo = false;
+    todoCurrentEdit = null;
+}
+
 
 const renderTodos = (project) => {
 
     const todosDisplay = document.querySelector("#todos-display");
     todosDisplay.textContent = ``;
     if (project) {
-        const projectTodos = project.getTodos();
+        let projectTodos = project.getTodos();
+
+        // Arrange Todos 
+        projectTodos.sort((a, b) => {
+            const dateA = parseISO(a.getDueDate());
+            const dateB = parseISO(b.getDueDate());
+            return dateA.getTime() - dateB.getTime();
+        });
+
         projectTodos.forEach(todo => {
             const divTodo = createTodoElement(todo);
             todosDisplay.append(divTodo);
-        })
+        });
     }
 }
 
 const createTodoElement = (todo) => {
-    const formTodo = document.querySelector("#form-modal-todo");
     const divTodo = document.createElement('div');
     const titleTodo = document.createElement('h3');
     const descriptionTodo = document.createElement('p');
@@ -165,9 +202,30 @@ const createTodoElement = (todo) => {
 
     divTodo.setAttribute('data-todo-id', `todo-${todo.getId()}`);
     divTodo.setAttribute('class', 'todo-item');
+
+    const rawDueDate = todo.getDueDate();
+    const dateObject = new Date(rawDueDate + 'T00:00:00');
+    dueDateTodo.textContent = `Due date: ${format(dateObject, 'PPP')}`;
+
+    if (isPast(dateObject) && !isToday(dateObject)) {
+        divTodo.classList.add('overdue'); // Thêm class CSS để đổi màu đỏ
+        dueDateTodo.textContent += ' (Overdue)';
+    } else if (isToday(dateObject)) {
+        divTodo.classList.add('due-today'); // Màu vàng
+        dueDateTodo.textContent += ' (Today)';
+    } else if (isTomorrow(dateObject)) {
+        divTodo.classList.add('due-tomorrow'); // Màu xanh nhạt
+        dueDateTodo.textContent += ' (Tomorrow)';
+    } else {
+        const daysRemaining = differenceInDays(dateObject, new Date());
+        if (daysRemaining > 0) {
+            dueDateTodo.textContent += ` (in ${daysRemaining} days)`;
+        }
+    }
+
     titleTodo.textContent = `${todo.getTitle()}`;
     descriptionTodo.textContent = `Description: ${todo.getDescription()}`;
-    dueDateTodo.textContent = `Due date: ${todo.getDueDate()}`;
+    // dueDateTodo.textContent = `Due date: ${todo.getDueDate()}`;
     priorityTodo.textContent = `Priority: ${todo.getPriority()}`;
     labelTodo.textContent = "Complete: "
     checkTodo.setAttribute("type", "checkbox");
@@ -198,8 +256,10 @@ const createTodoElement = (todo) => {
         todoCurrentEdit = todo;
         isEditingTodo = true;
         fillTodoForm(todoCurrentEdit);
-        formTodo.classList.remove("hide");
+
+        formElementGlobal.classList.remove("hide");
         modalForm.classList.remove("hide");
+
     });
     
     divTodo.append(titleTodo, descriptionTodo, dueDateTodo, priorityTodo, labelTodo, checkTodo, btnContainer);
@@ -208,22 +268,15 @@ const createTodoElement = (todo) => {
 
 const fillTodoForm = (todo) => {
 
-    const inputTitle = document.querySelector("#todo-title");
-    const inputDescription = document.querySelector("#todo-description");
-    const inputDueDate = document.querySelector("#todo-dueDate");
-    const selectPriority = document.querySelector("#todo-priority");
-    const titleForm = document.querySelector(".title-form");
-    const btnFormTodo = document.querySelector(".btn-add-todo");
-
-    titleForm.textContent = "Form Edit Todo";
-    btnFormTodo.textContent = "Submit"
+    titleFormGlobal.textContent = "Form Edit Todo";
+    btnFormGlobal.textContent = "Submit"
 
     if (todo) {
-        inputTitle.value = todo.getTitle();
-        inputDescription.value = todo.getDescription();
-        inputDueDate.value = todo.getDueDate();
-        selectPriority.value = todo.getPriority();
+        inputTitleGlobal.value = todo.getTitle();
+        inputDescriptionGlobal.value = todo.getDescription();
+        inputDueDateGlobal.value = todo.getDueDate();
+        selectPriorityGlobal.value = todo.getPriority();
     }
 }
 
-export {renderTodos, createTodoElement, formAddTodo, resetFormTodo};
+export {renderTodos, createTodoElement, formTodo, closeFormTodo, getIsFormTodoOpening, setIsFormTodoOpening};

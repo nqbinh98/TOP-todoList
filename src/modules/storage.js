@@ -1,13 +1,5 @@
 import {
-    initializeDefaultProject,
-    addProject,
-    removeProject,
-    getProject,
     getAllProjects,
-    addTodoToProject,
-    removeTodoFromProject,
-    toggleTodoCompletion,
-    defaultProjectName
 } from "./appLogic";
 import { Project } from "./project";
 import { Todo } from "./todo";
@@ -33,7 +25,6 @@ const getData = () => {
         })
         return projectInstance;
     })
-    // console.log(parsedProjects)
     return hydratedProjects;
 }
 
